@@ -10,6 +10,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # testing
 /coverage
@@ -61,3 +64,4 @@ ipl2026/.env.local
 ipl2026/.env.development.local
 ipl2026/.env.test.local
 ipl2026/.env.production.local
+ipl2026/package-lock.json

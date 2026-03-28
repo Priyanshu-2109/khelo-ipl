@@ -35,12 +35,9 @@ export default function ForgotPasswordPage() {
     setMessage("");
     setLoading(true);
     try {
-      const res = await forgotPassword(email);
+      await forgotPassword(email);
       setStep("verify");
-      if (res.debug_otp) {
-        setOtp(res.debug_otp);
-        setMessage(`Dev OTP: ${res.debug_otp}`);
-      }
+      setMessage("Check your email for the OTP.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
     } finally {
