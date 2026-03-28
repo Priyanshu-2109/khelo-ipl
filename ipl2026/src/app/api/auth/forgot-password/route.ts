@@ -12,12 +12,28 @@ function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+function normalizeEnv(value?: string) {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 async function sendOtpEmail(input: { to: string; otp: string }) {
-  const host = process.env.SMTP_HOST?.trim();
-  const port = Number(process.env.SMTP_PORT ?? 587);
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  const from = process.env.SMTP_FROM?.trim() || user;
+  const host = normalizeEnv(process.env.SMTP_HOST ?? process.env.EMAIL_HOST);
+  const port = Number(
+    normalizeEnv(process.env.SMTP_PORT ?? process.env.EMAIL_PORT) ?? 587
+  );
+  const user = normalizeEnv(process.env.SMTP_USER ?? process.env.EMAIL_USER);
+  const pass = normalizeEnv(
+    process.env.SMTP_PASS ?? process.env.SMTP_PASSWORD ?? process.env.EMAIL_PASSWORD
+  );
+  const from = normalizeEnv(process.env.SMTP_FROM ?? process.env.EMAIL_FROM) || user;
 
   if (!host || !port || !user || !pass || !from) {
     return { ok: false as const, reason: "missing-config" as const };
