@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "Khelo IPL · Fantasy cricket",
   description:
     "Khelo IPL — fantasy cricket leaderboard, match scoring, and player profiles.",
-  icons: { icon: "/kheloipl-logo.png" },
+  icons: { icon: "/kheloipl-logo.svg" },
 };
 
 export default function RootLayout({

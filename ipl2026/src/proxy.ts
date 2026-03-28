@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 /**
- * Edge-safe auth check: do not import `@/auth` here — it pulls in MongoDB/bcrypt
+ * Edge-safe auth check: do not import `@/auth` here - it pulls in MongoDB/bcrypt
  * and breaks the Edge runtime ("stream" module error).
  */
 function sessionCookieName() {
@@ -12,10 +12,10 @@ function sessionCookieName() {
     : "authjs.session-token";
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
-    console.error("[middleware] AUTH_SECRET is not set");
+    console.error("[proxy] AUTH_SECRET is not set");
     return NextResponse.next();
   }
 
@@ -50,9 +50,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Skip static assets, api, and image files (same as before).
-     */
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$|.*\\.jpg$|.*\\.jpeg$|.*\\.webp$).*)",
   ],
 };
