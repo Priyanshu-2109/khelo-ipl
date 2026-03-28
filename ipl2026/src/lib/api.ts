@@ -44,7 +44,7 @@ export async function registerAccount(
 
 export async function forgotPassword(
   email: string
-): Promise<{ debug_token?: string }> {
+): Promise<{ debug_otp?: string }> {
   const res = await fetch("/api/auth/forgot-password", {
     method: "POST",
     ...reqInit(),
@@ -63,6 +63,21 @@ export async function resetPassword(
     method: "POST",
     ...reqInit(),
     body: JSON.stringify({ token, password }),
+  });
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.detail || data.error || "Password reset failed");
+}
+
+export async function resetPasswordWithOtp(
+  email: string,
+  otp: string,
+  password: string
+): Promise<void> {
+  const res = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    ...reqInit(),
+    body: JSON.stringify({ email, otp, password }),
   });
   const data = await res.json();
   if (!res.ok)

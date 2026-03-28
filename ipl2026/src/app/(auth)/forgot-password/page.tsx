@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { forgotPassword } from "@/lib/api";
+import { forgotPassword, resetPasswordWithOtp } from "@/lib/api";
 import { ClientOnly } from "@/components/client-only";
 import { KheloLogo } from "@/components/khelo-logo";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,25 @@ function FormSkeleton() {
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [step, setStep] = useState<"request" | "verify" | "done">("request");
 
-  const submit = async (e: React.FormEvent) => {
+  const requestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
     try {
       const res = await forgotPassword(email);
-      setSuccess(true);
-      if (res.debug_token && typeof window !== "undefined") {
-        const path = `/reset-password?token=${encodeURIComponent(res.debug_token)}`;
-        console.info("[Khelo IPL] Reset token (dev):", res.debug_token);
-        console.info("[Khelo IPL] Reset link:", `${window.location.origin}${path}`);
+      setStep("verify");
+      if (res.debug_otp) {
+        setOtp(res.debug_otp);
+        setMessage(`Dev OTP: ${res.debug_otp}`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
@@ -44,7 +48,26 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  if (success) {
+  const resetWithOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    try {
+      await resetPasswordWithOtp(email, otp, newPassword);
+      setStep("done");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === "done") {
     return (
       <Card className="border-border/80 shadow-lg">
         <CardHeader className="flex flex-col items-center pb-2">
@@ -55,8 +78,7 @@ export default function ForgotPasswordPage() {
             </div>
             <h1 className="text-xl font-bold">Check your email</h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              If an account exists for that address, we sent reset instructions.
-              Check spam if nothing arrives in a few minutes.
+              Password updated successfully. You can now sign in.
             </p>
           </div>
         </CardHeader>
@@ -78,35 +100,97 @@ export default function ForgotPasswordPage() {
         <KheloLogo className="size-24 object-contain" />
         <h1 className="text-xl font-bold tracking-tight">Forgot password?</h1>
         <p className="text-muted-foreground text-center text-sm">
-          Enter your email and we&apos;ll send a reset link.
+          {step === "request"
+            ? "Enter your email and we will send an OTP."
+            : "Enter OTP and your new password."}
         </p>
       </CardHeader>
       <ClientOnly fallback={<FormSkeleton />}>
         <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError("");
-                }}
-                required
-                className="mt-1"
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending…" : "Send reset link"}
-            </Button>
-          </form>
+          {step === "request" ? (
+            <form onSubmit={requestOtp} className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending OTP…" : "Send OTP"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={resetWithOtp} className="space-y-4">
+              <div>
+                <Label htmlFor="otp">OTP</Label>
+                <Input
+                  id="otp"
+                  value={otp}
+                  onChange={(e) => {
+                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                    setError("");
+                  }}
+                  placeholder="6-digit OTP"
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="newPassword">New password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setError("");
+                  }}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">Confirm new password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setError("");
+                  }}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              {message && (
+                <Alert>
+                  <AlertDescription>{message}</AlertDescription>
+                </Alert>
+              )}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Resetting…" : "Reset password"}
+              </Button>
+            </form>
+          )}
         </CardContent>
         <CardFooter className="justify-center border-t">
           <Link

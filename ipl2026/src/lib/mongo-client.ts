@@ -18,13 +18,20 @@ declare global {
 
 function getClientPromise(): Promise<MongoClient> {
   const uri = getUri();
-  if (process.env.NODE_ENV === "development") {
-    if (!global._mongoClientPromise) {
-      global._mongoClientPromise = new MongoClient(uri).connect();
-    }
-    return global._mongoClientPromise;
+
+  // In serverless (e.g., Vercel), reusing one client per runtime container
+  // avoids excessive TLS handshakes and reduces transient connection failures.
+  if (!global._mongoClientPromise) {
+    global._mongoClientPromise = new MongoClient(uri, {
+      maxPoolSize: 10,
+      minPoolSize: 0,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      retryWrites: true,
+    }).connect();
   }
-  return new MongoClient(uri).connect();
+
+  return global._mongoClientPromise;
 }
 
 export async function getDb(): Promise<Db> {
