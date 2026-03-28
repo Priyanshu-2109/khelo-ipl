@@ -279,7 +279,7 @@ export function AdminPanel() {
         <span className="w-16" />
       </header>
 
-      <div>
+      <div className="min-w-0">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as TabKey)}
@@ -321,9 +321,9 @@ export function AdminPanel() {
                 )}
                 <div className="grid gap-3 sm:grid-cols-2">
                   {games.map((game) => (
-                    <Card key={game.id} className="p-4">
+                    <Card key={game.id} className="min-w-0 p-4">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold leading-tight">
+                        <h3 className="min-w-0 break-words font-semibold leading-tight">
                           {game.match_name}
                         </h3>
                         <span
@@ -384,11 +384,13 @@ export function AdminPanel() {
                 {games.map((game) => (
                   <Card
                     key={game.id}
-                    className="hover:bg-muted/40 cursor-pointer p-4 transition-colors"
+                    className="hover:bg-muted/40 min-w-0 cursor-pointer p-4 transition-colors"
                     onClick={() => loadPointsEntry(game)}
                   >
                     <div className="flex justify-between gap-2">
-                      <h3 className="font-semibold">{game.match_name}</h3>
+                      <h3 className="min-w-0 break-words font-semibold">
+                        {game.match_name}
+                      </h3>
                       <span className="text-muted-foreground text-xs">
                         {game.is_completed ? "Edit" : "Enter"}
                       </span>
@@ -414,7 +416,7 @@ export function AdminPanel() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {profiles.map((profile) => (
-                    <Card key={profile.id} className="p-4">
+                    <Card key={profile.id} className="min-w-0 p-4">
                       <h3 className="font-semibold">
                         {profile.name}{" "}
                         {profile.is_default && (

@@ -40,7 +40,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.env.example
+!.env.example
+!ipl2026/.env.example
 
 # vercel
 .vercel
@@ -60,4 +61,3 @@ ipl2026/.env.local
 ipl2026/.env.development.local
 ipl2026/.env.test.local
 ipl2026/.env.production.local
-!ipl2026/.env.example
