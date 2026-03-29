@@ -703,25 +703,22 @@ export function AdminPanel() {
                 the server.
               </p>
               <ScrollArea className="mt-3 max-h-[50vh] pr-3">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {rankingUsers.map((u) => (
                     <div
                       key={u.id}
-                      className="flex items-center justify-between gap-2 border-b py-2 last:border-0"
+                      className="flex flex-col gap-2 border-b py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
                           {u.display_name}
-                        </p>
-                        <p className="text-muted-foreground truncate text-xs">
-                          {u.email}
                         </p>
                       </div>
                       <Input
                         type="number"
                         min={0}
                         placeholder="Pts"
-                        className="w-24"
+                        className="w-full sm:w-24"
                         value={fantasyPoints[String(u.id)] ?? ""}
                         onChange={(e) =>
                           setFantasyPoints({

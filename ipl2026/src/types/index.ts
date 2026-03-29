@@ -56,5 +56,4 @@ export type AdminGame = {
 export type RankingsUser = {
   id: string;
   display_name: string;
-  email: string;
 };

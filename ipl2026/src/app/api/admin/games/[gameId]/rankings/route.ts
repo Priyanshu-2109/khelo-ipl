@@ -47,7 +47,6 @@ export async function GET(
         $project: {
           user_id: { $toString: "$userId" },
           display_name: "$u.displayName",
-          email: "$u.email",
           fantasy_points: "$fantasyPoints",
           user_rank: "$userRank",
           points_earned: "$pointsEarned",
@@ -60,7 +59,7 @@ export async function GET(
   const users = await db
     .collection("users")
     .find({ isActive: true })
-    .project({ displayName: 1, email: 1 })
+    .project({ displayName: 1 })
     .sort({ displayName: 1 })
     .toArray();
 
@@ -77,7 +76,6 @@ export async function GET(
     users: users.map((u) => ({
       id: u._id.toString(),
       display_name: u.displayName,
-      email: u.email,
     })),
   });
 }
