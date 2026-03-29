@@ -694,7 +694,7 @@ export function AdminPanel() {
           )}
 
           {modalType === "enterPoints" && selectedGame && (
-            <div>
+            <div className="flex max-h-[80vh] min-h-0 flex-col">
               <DialogHeader>
                 <DialogTitle>Points — {selectedGame.match_name}</DialogTitle>
               </DialogHeader>
@@ -702,8 +702,8 @@ export function AdminPanel() {
                 Enter each player&apos;s fantasy points. Ranks are calculated on
                 the server.
               </p>
-              <ScrollArea className="mt-3 max-h-[50vh] pr-3">
-                <div className="space-y-3">
+              <ScrollArea className="mt-3 min-h-0 flex-1 pr-3">
+                <div className="space-y-3 pb-3">
                   {rankingUsers.map((u) => (
                     <div
                       key={u.id}
@@ -731,14 +731,14 @@ export function AdminPanel() {
                   ))}
                 </div>
               </ScrollArea>
-              <DialogFooter className="mt-4 gap-2 sm:gap-0">
+              <div className="mt-3 flex flex-col-reverse gap-2 border-t pt-3 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={closeModal}>
                   Cancel
                 </Button>
                 <Button type="button" onClick={handlePointsSubmit}>
                   Submit points
                 </Button>
-              </DialogFooter>
+              </div>
             </div>
           )}
         </DialogContent>
