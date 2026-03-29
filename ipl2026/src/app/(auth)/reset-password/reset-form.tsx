@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 function FormSkeleton() {
   return (
@@ -216,8 +217,8 @@ export function ResetPasswordForm() {
   return (
     <Suspense
       fallback={
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground text-sm">Loading…</p>
+        <Card className="p-8">
+          <LottieLoader label="Loading reset form..." size={80} />
         </Card>
       }
     >

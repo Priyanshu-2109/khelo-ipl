@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, Target, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Loader2,
+  Pencil,
+  Plus,
+  Target,
+  Trash2,
+  Trophy,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   createAdminGame,
@@ -31,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LottieLoader } from "../ui/lottie-loader";
 import { cn } from "@/lib/utils";
 
 type TabKey = "schedule" | "rankings" | "profiles";
@@ -71,6 +81,16 @@ export function AdminPanel() {
     {}
   );
   const [rankingUsers, setRankingUsers] = useState<RankingsUser[]>([]);
+  const [savingGame, setSavingGame] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [submittingPoints, setSubmittingPoints] = useState(false);
+  const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
+  const [deletingProfileId, setDeletingProfileId] = useState<string | null>(null);
+
+  const actionBtnClass =
+    "transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
+  const primaryActionBtnClass = `${actionBtnClass} shadow-sm hover:shadow-md`;
+  const destructiveActionBtnClass = `${actionBtnClass} hover:brightness-95`;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -141,17 +161,21 @@ export function AdminPanel() {
 
   const handleGameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSavingGame(true);
     try {
       await createAdminGame(formData);
       closeModal();
       loadData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSavingGame(false);
     }
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSavingProfile(true);
     try {
       if (selectedProfile) {
         await updateScoringProfile(selectedProfile.id, formData);
@@ -162,6 +186,8 @@ export function AdminPanel() {
       loadData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -195,6 +221,7 @@ export function AdminPanel() {
       return;
     }
     if (!selectedGame) return;
+    setSubmittingPoints(true);
     try {
       await submitRankings({
         game_id: selectedGame.id,
@@ -204,6 +231,8 @@ export function AdminPanel() {
       loadData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Submit failed");
+    } finally {
+      setSubmittingPoints(false);
     }
   };
 
@@ -285,33 +314,80 @@ export function AdminPanel() {
           onValueChange={(v) => setActiveTab(v as TabKey)}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="schedule" className="gap-1 text-xs sm:text-sm">
-              <Calendar className="size-3.5 sm:size-4" />
-              Schedule
+          <TabsList className="grid w-full grid-cols-3 rounded-xl bg-muted/40 p-1">
+            <TabsTrigger
+              value="schedule"
+              className={cn(
+                "gap-1.5 rounded-lg border border-transparent text-xs font-medium text-muted-foreground transition-all hover:text-foreground sm:text-sm",
+                activeTab === "schedule" &&
+                  "border-primary/30 bg-primary/10 text-foreground shadow-sm"
+              )}
+            >
+              <span
+                className={cn(
+                  "rounded-md bg-muted/70 p-1 transition-colors",
+                  activeTab === "schedule" && "bg-primary/20 text-primary"
+                )}
+              >
+                <Calendar className="size-3.5 sm:size-4" />
+              </span>
+              <span>Schedule</span>
             </TabsTrigger>
-            <TabsTrigger value="rankings" className="gap-1 text-xs sm:text-sm">
-              <Target className="size-3.5 sm:size-4" />
-              Points
+            <TabsTrigger
+              value="rankings"
+              className={cn(
+                "gap-1.5 rounded-lg border border-transparent text-xs font-medium text-muted-foreground transition-all hover:text-foreground sm:text-sm",
+                activeTab === "rankings" &&
+                  "border-primary/30 bg-primary/10 text-foreground shadow-sm"
+              )}
+            >
+              <span
+                className={cn(
+                  "rounded-md bg-muted/70 p-1 transition-colors",
+                  activeTab === "rankings" && "bg-primary/20 text-primary"
+                )}
+              >
+                <Target className="size-3.5 sm:size-4" />
+              </span>
+              <span>Points</span>
             </TabsTrigger>
-            <TabsTrigger value="profiles" className="gap-1 text-xs sm:text-sm">
-              <Trophy className="size-3.5 sm:size-4" />
-              Profiles
+            <TabsTrigger
+              value="profiles"
+              className={cn(
+                "gap-1.5 rounded-lg border border-transparent text-xs font-medium text-muted-foreground transition-all hover:text-foreground sm:text-sm",
+                activeTab === "profiles" &&
+                  "border-primary/30 bg-primary/10 text-foreground shadow-sm"
+              )}
+            >
+              <span
+                className={cn(
+                  "rounded-md bg-muted/70 p-1 transition-colors",
+                  activeTab === "profiles" && "bg-primary/20 text-primary"
+                )}
+              >
+                <Trophy className="size-3.5 sm:size-4" />
+              </span>
+              <span>Profiles</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="schedule" className="mt-4">
             {loading ? (
-              <p className="text-muted-foreground text-center text-sm">Loading…</p>
+              <LottieLoader label="Loading schedule..." />
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-end">
                   <Button
                     size="sm"
+                    className={cn(
+                      primaryActionBtnClass,
+                      "border border-primary/35 bg-primary/15 text-primary hover:bg-primary/25"
+                    )}
                     onClick={openAddGame}
                     disabled={profiles.length === 0}
                   >
-                    + Add game
+                    <Plus className="mr-1 size-4" />
+                    Add game
                   </Button>
                 </div>
                 {profiles.length === 0 && (
@@ -321,14 +397,17 @@ export function AdminPanel() {
                 )}
                 <div className="grid gap-3 sm:grid-cols-2">
                   {games.map((game) => (
-                    <Card key={game.id} className="min-w-0 p-4">
-                      <div className="flex items-start justify-between gap-2">
+                    <Card
+                      key={game.id}
+                      className="group min-w-0 overflow-hidden border-border/70 bg-card/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
                         <h3 className="min-w-0 break-words font-semibold leading-tight">
                           {game.match_name}
                         </h3>
                         <span
                           className={cn(
-                            "shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-medium",
+                            "shrink-0 rounded-full px-2.5 py-0.5 text-[0.65rem] font-semibold tracking-wide",
                             game.is_completed
                               ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                               : "bg-amber-500/15 text-amber-800 dark:text-amber-300"
@@ -337,7 +416,7 @@ export function AdminPanel() {
                           {game.is_completed ? "Complete" : "Pending"}
                         </span>
                       </div>
-                      <p className="text-muted-foreground mt-2 text-sm">
+                      <p className="text-muted-foreground text-sm">
                         {new Date(game.match_date).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
@@ -348,15 +427,20 @@ export function AdminPanel() {
                       {game.venue && (
                         <p className="text-muted-foreground text-sm">{game.venue}</p>
                       )}
-                      <p className="text-muted-foreground mt-1 text-xs">
+                      <p className="text-muted-foreground mt-1 text-xs font-medium">
                         Profile: {game.scoring_profile_name || "Default"}
                       </p>
                       <Button
                         variant="destructive"
                         size="xs"
-                        className="mt-3"
+                        className={cn(
+                          "mt-3 border border-destructive/40 bg-destructive/90 text-destructive-foreground hover:bg-destructive",
+                          destructiveActionBtnClass
+                        )}
+                        disabled={deletingGameId === game.id}
                         onClick={async () => {
                           if (!confirm("Delete this game?")) return;
+                          setDeletingGameId(game.id);
                           try {
                             await deleteAdminGame(game.id);
                             loadData();
@@ -364,10 +448,22 @@ export function AdminPanel() {
                             alert(
                               err instanceof Error ? err.message : "Delete failed"
                             );
+                          } finally {
+                            setDeletingGameId(null);
                           }
                         }}
                       >
-                        Delete
+                        {deletingGameId === game.id ? (
+                          <>
+                            <Loader2 className="mr-1 size-3.5 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="mr-1 size-3.5" />
+                            Delete
+                          </>
+                        )}
                       </Button>
                     </Card>
                   ))}
@@ -378,25 +474,29 @@ export function AdminPanel() {
 
           <TabsContent value="rankings" className="mt-4">
             {loading ? (
-              <p className="text-muted-foreground text-center text-sm">Loading…</p>
+              <LottieLoader label="Loading points..." />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {games.map((game) => (
                   <Card
                     key={game.id}
-                    className="hover:bg-muted/40 min-w-0 cursor-pointer p-4 transition-colors"
+                    className="group hover:bg-muted/40 min-w-0 cursor-pointer overflow-hidden border-border/70 bg-card/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
                     onClick={() => loadPointsEntry(game)}
                   >
                     <div className="flex justify-between gap-2">
                       <h3 className="min-w-0 break-words font-semibold">
                         {game.match_name}
                       </h3>
-                      <span className="text-muted-foreground text-xs">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                         {game.is_completed ? "Edit" : "Enter"}
                       </span>
                     </div>
                     <p className="text-muted-foreground mt-2 text-sm">
                       {new Date(game.match_date).toLocaleDateString("en-IN")}
+                    </p>
+                    <p className="mt-2 inline-flex items-center text-xs font-medium text-primary/90">
+                      <Target className="mr-1 size-3.5" />
+                      Click to manage fantasy points
                     </p>
                   </Card>
                 ))}
@@ -406,24 +506,35 @@ export function AdminPanel() {
 
           <TabsContent value="profiles" className="mt-4">
             {loading ? (
-              <p className="text-muted-foreground text-center text-sm">Loading…</p>
+              <LottieLoader label="Loading profiles..." />
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-end">
-                  <Button size="sm" onClick={openAddProfile}>
-                    + Create profile
+                  <Button
+                    size="sm"
+                    className={cn(
+                      primaryActionBtnClass,
+                      "border border-primary/35 bg-primary/15 text-primary hover:bg-primary/25"
+                    )}
+                    onClick={openAddProfile}
+                  >
+                    <Plus className="mr-1 size-4" />
+                    Create profile
                   </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {profiles.map((profile) => (
-                    <Card key={profile.id} className="min-w-0 p-4">
-                      <h3 className="font-semibold">
+                    <Card
+                      key={profile.id}
+                      className="min-w-0 overflow-hidden border-border/70 bg-card/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      <h3 className="font-semibold leading-tight">
                         {profile.name}{" "}
                         {profile.is_default && (
                           <span className="text-amber-500">★</span>
                         )}
                       </h3>
-                      <p className="text-muted-foreground mt-1 text-sm">
+                      <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
                         {profile.description}
                       </p>
                       {profile.is_multiplier && (
@@ -454,16 +565,27 @@ export function AdminPanel() {
                         <Button
                           variant="outline"
                           size="xs"
+                          className={cn(
+                            actionBtnClass,
+                            "border border-border/80 bg-background/90 text-foreground hover:bg-muted"
+                          )}
                           onClick={() => openEditProfile(profile)}
                         >
+                          <Pencil className="mr-1 size-3.5" />
                           Edit
                         </Button>
                         {!profile.is_default && (
                           <Button
                             variant="destructive"
                             size="xs"
+                            className={cn(
+                              destructiveActionBtnClass,
+                              "border border-destructive/40 bg-destructive/90 text-destructive-foreground hover:bg-destructive"
+                            )}
+                            disabled={deletingProfileId === profile.id}
                             onClick={async () => {
                               if (!confirm("Delete this profile?")) return;
+                              setDeletingProfileId(profile.id);
                               try {
                                 await deleteScoringProfile(profile.id);
                                 loadData();
@@ -473,10 +595,22 @@ export function AdminPanel() {
                                     ? err.message
                                     : "Delete failed"
                                 );
+                              } finally {
+                                setDeletingProfileId(null);
                               }
                             }}
                           >
-                            Delete
+                            {deletingProfileId === profile.id ? (
+                              <>
+                                <Loader2 className="mr-1 size-3.5 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="mr-1 size-3.5" />
+                                Delete
+                              </>
+                            )}
                           </Button>
                         )}
                       </div>
@@ -575,10 +709,22 @@ export function AdminPanel() {
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button type="button" variant="outline" onClick={closeModal}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={actionBtnClass}
+                  onClick={closeModal}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">Create</Button>
+                <Button
+                  type="submit"
+                  className={primaryActionBtnClass}
+                  disabled={savingGame}
+                >
+                  {savingGame && <Loader2 className="mr-1 size-4 animate-spin" />}
+                  {savingGame ? "Creating..." : "Create"}
+                </Button>
               </DialogFooter>
             </form>
           )}
@@ -683,11 +829,29 @@ export function AdminPanel() {
                 </div>
               </div>
               <DialogFooter className="mt-4 gap-2 sm:gap-0">
-                <Button type="button" variant="outline" onClick={closeModal}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={actionBtnClass}
+                  onClick={closeModal}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {modalType === "editProfile" ? "Update" : "Create"}
+                <Button
+                  type="submit"
+                  className={primaryActionBtnClass}
+                  disabled={savingProfile}
+                >
+                  {savingProfile && (
+                    <Loader2 className="mr-1 size-4 animate-spin" />
+                  )}
+                  {savingProfile
+                    ? modalType === "editProfile"
+                      ? "Updating..."
+                      : "Creating..."
+                    : modalType === "editProfile"
+                      ? "Update"
+                      : "Create"}
                 </Button>
               </DialogFooter>
             </form>
@@ -732,11 +896,24 @@ export function AdminPanel() {
                 </div>
               </ScrollArea>
               <div className="mt-3 flex flex-col-reverse gap-2 border-t pt-3 sm:flex-row sm:justify-end">
-                <Button type="button" variant="outline" onClick={closeModal}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={actionBtnClass}
+                  onClick={closeModal}
+                >
                   Cancel
                 </Button>
-                <Button type="button" onClick={handlePointsSubmit}>
-                  Submit points
+                <Button
+                  type="button"
+                  className={primaryActionBtnClass}
+                  onClick={handlePointsSubmit}
+                  disabled={submittingPoints}
+                >
+                  {submittingPoints && (
+                    <Loader2 className="mr-1 size-4 animate-spin" />
+                  )}
+                  {submittingPoints ? "Submitting..." : "Submit points"}
                 </Button>
               </div>
             </div>

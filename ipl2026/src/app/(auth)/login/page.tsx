@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 import { Card, CardContent } from "@/components/ui/card";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 function googleOAuthConfigured() {
   return !!(
@@ -16,8 +17,8 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <Card className="p-10">
-          <CardContent className="pt-6 text-center text-sm text-muted-foreground">
-            Loading…
+          <CardContent className="pt-4">
+            <LottieLoader label="Loading login..." size={80} />
           </CardContent>
         </Card>
       }

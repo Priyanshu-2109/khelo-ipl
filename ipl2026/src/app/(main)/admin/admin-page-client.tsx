@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AdminPanel } from "@/components/admin/admin-panel";
 import { AdminSetupCard } from "@/components/admin/admin-setup-card";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 export function AdminPageClient() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export function AdminPageClient() {
   if (configured === null || (configured && status === "loading")) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <LottieLoader label="Loading admin..." size={84} />
       </div>
     );
   }
@@ -58,7 +59,7 @@ export function AdminPageClient() {
   if (!session?.user?.id || !session.user.isAdmin) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground text-sm">Redirecting…</p>
+        <LottieLoader label="Redirecting..." size={84} />
       </div>
     );
   }

@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 import { cn } from "@/lib/utils";
 
 function initial(name: string | undefined) {
@@ -122,9 +123,7 @@ function PlayerMatchesDialog({
           />
         </div>
         <ScrollArea className="max-h-[50vh] pr-3">
-          {loading && (
-            <p className="text-muted-foreground py-6 text-center">Loading…</p>
-          )}
+          {loading && <LottieLoader label="Loading matches..." size={72} />}
           {!loading && err && (
             <p className="text-destructive py-4 text-center text-sm">{err}</p>
           )}
@@ -190,10 +189,7 @@ export function LeagueLeaderboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-20">
-        <div className="border-primary size-10 animate-spin rounded-full border-2 border-t-transparent" />
-        <p className="text-muted-foreground text-sm">Loading leaderboard…</p>
-      </div>
+      <LottieLoader label="Loading leaderboard..." />
     );
   }
 
@@ -278,34 +274,36 @@ export function LeagueLeaderboard() {
                   return (
                     <Card
                       key={player.user_id}
-                      className="hover:bg-muted/30 flex cursor-pointer items-center gap-3 p-3 transition-colors"
+                      className="group hover:bg-muted/40 relative overflow-hidden border-border/70 bg-card/70 shadow-sm transition-all hover:shadow-md"
                       onClick={() => setSelected(player)}
                     >
-                      <div className="text-muted-foreground w-8 text-center font-mono text-sm">
-                        {rank}
-                      </div>
-                      <PlayerAvatar
-                        picture={player.profilePicture}
-                        name={player.display_name}
-                        className="size-10 shrink-0 text-sm"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">
-                          {player.display_name}
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          {player.matches_played} matches ·{" "}
-                          {player.average_points} avg
-                          {player.best_rank != null &&
-                            ` · Best P${player.best_rank}`}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold tabular-nums">
-                          {player.total_points.toLocaleString()}
+                      <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-amber-400/80 via-sky-500/60 to-emerald-400/70 opacity-70 transition-opacity group-hover:opacity-100" />
+                      <div className="flex items-center gap-3 p-3 pl-4">
+                        <div className="bg-muted text-muted-foreground w-9 rounded-md py-1 text-center font-mono text-sm font-semibold">
+                          #{rank}
                         </div>
-                        <div className="text-muted-foreground text-[0.65rem]">
-                          pts
+                        <PlayerAvatar
+                          picture={player.profilePicture}
+                          name={player.display_name}
+                          className="size-10 shrink-0 text-sm"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">
+                            {player.display_name}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {player.matches_played} matches · {player.average_points} avg
+                            {player.best_rank != null &&
+                              ` · Best P${player.best_rank}`}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold tabular-nums">
+                            {player.total_points.toLocaleString()}
+                          </div>
+                          <div className="text-muted-foreground text-[0.65rem]">
+                            pts
+                          </div>
                         </div>
                       </div>
                     </Card>

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -159,7 +160,7 @@ export default function ProfilePage() {
   if (loading || !user) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <LottieLoader label="Loading profile..." size={84} />
       </div>
     );
   }

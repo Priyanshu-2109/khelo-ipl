@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { getCurrentUser } from "@/lib/api";
 import type { AppUser } from "@/types";
 import { LeagueLeaderboard } from "@/components/leaderboard/league-leaderboard";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -39,7 +40,7 @@ export default function DashboardPage() {
   if (status === "loading" || (status === "authenticated" && !user)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <LottieLoader label="Loading dashboard..." size={84} />
       </div>
     );
   }

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { LottieLoader } from "@/components/ui/lottie-loader";
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center">
-      <p className="text-muted-foreground text-sm">Loading…</p>
+      <LottieLoader label="Loading app..." size={88} />
     </div>
   );
 }
