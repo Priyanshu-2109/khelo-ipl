@@ -59,17 +59,22 @@ export function BottomNav() {
         active={pathname === "/profile"}
       >
         {profilePic ? (
-          <Image
-            src={profilePic}
-            alt=""
-            width={24}
-            height={24}
-            className="size-6 rounded-full object-cover ring-1 ring-border sm:size-7"
-            unoptimized={
-              profilePic.startsWith("data:") ||
-              profilePic.includes("googleusercontent")
-            }
-          />
+          profilePic.startsWith("data:") ? (
+            <img
+              src={profilePic}
+              alt=""
+              className="size-6 rounded-full object-cover ring-1 ring-border sm:size-7"
+            />
+          ) : (
+            <Image
+              src={profilePic}
+              alt=""
+              width={24}
+              height={24}
+              className="size-6 rounded-full object-cover ring-1 ring-border sm:size-7"
+              unoptimized={profilePic.includes("googleusercontent")}
+            />
+          )
         ) : (
           <User className="size-5 sm:size-6" strokeWidth={2} />
         )}

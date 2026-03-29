@@ -30,6 +30,16 @@ function PlayerAvatar({
   className?: string;
 }) {
   if (picture) {
+    if (picture.startsWith("data:")) {
+      return (
+        <img
+          src={picture}
+          alt={name}
+          className={cn("rounded-full object-cover", className)}
+        />
+      );
+    }
+
     return (
       <Image
         src={picture}
@@ -329,19 +339,26 @@ function PodiumCard({
   tall?: boolean;
   onClick: () => void;
 }) {
-  const ring =
+  const highlight =
     tone === "gold"
-      ? "ring-amber-400/50"
+      ? "border-amber-400/70 ring-2 ring-amber-300/35 shadow-[0_0_20px_rgba(251,191,36,0.25)]"
       : tone === "silver"
-        ? "ring-slate-300"
-        : "ring-amber-800/40";
+        ? "border-slate-300/80 ring-2 ring-slate-200/35 shadow-[0_0_18px_rgba(203,213,225,0.22)]"
+        : "border-amber-700/80 ring-2 ring-amber-700/30 shadow-[0_0_18px_rgba(180,83,9,0.2)]";
+
+  const avatarRing =
+    tone === "gold"
+      ? "ring-2 ring-amber-400/60"
+      : tone === "silver"
+        ? "ring-2 ring-slate-300/60"
+        : "ring-2 ring-amber-700/55";
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "bg-card flex w-full flex-col items-center rounded-xl border p-2 text-center shadow-sm transition-transform hover:scale-[1.02] sm:p-3",
-        ring,
+        "bg-card/95 flex w-full flex-col items-center rounded-xl border p-2 text-center shadow-sm transition-transform hover:scale-[1.02] sm:p-3",
+        highlight,
         tall && "sm:-mt-2 sm:pb-4",
         tall ? "order-none sm:order-none" : ""
       )}
@@ -352,10 +369,7 @@ function PodiumCard({
       <PlayerAvatar
         picture={player.profilePicture}
         name={player.display_name}
-        className={cn(
-          "my-2 size-14 sm:size-16",
-          tone === "gold" && "ring-2 ring-amber-400/60"
-        )}
+        className={cn("my-2 size-14 sm:size-16", avatarRing)}
       />
       <p className="max-w-full truncate text-sm font-semibold">
         {player.display_name}
