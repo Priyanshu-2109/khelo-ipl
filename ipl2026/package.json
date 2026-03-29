@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "email:send": "node email-scripts/send-broadcast.cjs",
+    "email:send:live": "node email-scripts/send-broadcast.cjs --yes",
+    "email:watch": "node email-scripts/watch-and-send.cjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
