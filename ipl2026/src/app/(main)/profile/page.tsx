@@ -127,7 +127,7 @@ export default function ProfilePage() {
       const b64 = await fileToBase64(file);
       await uploadProfilePicture(b64);
       setUser((prev) => (prev ? { ...prev, profilePicture: b64 } : null));
-      await update({ profilePicture: b64 });
+      await update();
       setMessage("Profile picture updated.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -144,7 +144,7 @@ export default function ProfilePage() {
     try {
       await deleteProfilePicture();
       setUser((prev) => (prev ? { ...prev, profilePicture: null } : null));
-      await update({ profilePicture: null });
+      await update();
       setMessage("Picture removed.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
@@ -200,14 +200,22 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center">
           <div className="relative">
             {user.profilePicture ? (
-              <Image
-                src={user.profilePicture}
-                alt=""
-                width={112}
-                height={112}
-                className="rounded-full object-cover ring-2 ring-primary/20"
-                unoptimized
-              />
+              user.profilePicture.startsWith("data:") ? (
+                <img
+                  src={user.profilePicture}
+                  alt=""
+                  className="size-28 rounded-full object-cover ring-2 ring-primary/20"
+                />
+              ) : (
+                <Image
+                  src={user.profilePicture}
+                  alt=""
+                  width={112}
+                  height={112}
+                  className="rounded-full object-cover ring-2 ring-primary/20"
+                  unoptimized
+                />
+              )
             ) : (
               <div className="bg-muted flex size-28 items-center justify-center rounded-full text-3xl font-semibold ring-2 ring-border">
                 {user.displayName?.charAt(0).toUpperCase() || "?"}

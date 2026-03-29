@@ -1,16 +1,16 @@
 import type { Db } from "mongodb";
 
 const DEFAULT_DIST = {
-  "1": 25,
-  "2": 18,
-  "3": 15,
-  "4": 12,
-  "5": 10,
-  "6": 8,
-  "7": 6,
-  "8": 4,
-  "9": 2,
-  "10": 1,
+  "1": 35,
+  "2": 30,
+  "3": 25,
+  "4": 20,
+  "5": 15,
+  "6": 10,
+  "7": 5,
+  "8": 0,
+  "9": 0,
+  "10": 0,
 };
 
 export async function ensureDbSetup(db: Db) {
@@ -30,4 +30,18 @@ export async function ensureDbSetup(db: Db) {
       createdAt: new Date(),
     });
   }
+
+  // Keep the default profile aligned with product scoring rules.
+  await db.collection("scoring_profiles").updateOne(
+    { is_default: true, name: "Standard IPL" },
+    {
+      $set: {
+        description: "Default top-10 distribution",
+        point_distribution: DEFAULT_DIST,
+        max_ranks: 10,
+        is_multiplier: false,
+        multiplier: 1,
+      },
+    }
+  );
 }

@@ -21,6 +21,16 @@ async function loadUserById(id: string) {
   }
 }
 
+function toTokenProfilePicture(value: unknown): string | null {
+  const pic = typeof value === "string" ? value.trim() : "";
+  if (!pic) return null;
+  // Never store base64 image blobs in JWT/session cookies.
+  if (pic.startsWith("data:")) return null;
+  // Keep token payload small and cookie-safe.
+  if (pic.length > 1024) return null;
+  return pic;
+}
+
 const googleProvider =
   process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
     ? Google({
@@ -141,7 +151,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.sub = (dbUser._id as ObjectId).toString();
           token.isAdmin = !!(dbUser as { isAdmin?: boolean }).isAdmin;
           token.displayName = dbUser.displayName as string;
-          token.profilePicture = (dbUser as { profilePicture?: string }).profilePicture ?? null;
+          token.profilePicture = toTokenProfilePicture(
+            (dbUser as { profilePicture?: string }).profilePicture
+          );
         }
       }
       if (user && account?.provider === "credentials") {
@@ -150,19 +162,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (dbUser) {
           token.isAdmin = !!(dbUser as { isAdmin?: boolean }).isAdmin;
           token.displayName = dbUser.displayName as string;
-          token.profilePicture = (dbUser as { profilePicture?: string }).profilePicture ?? null;
+          token.profilePicture = toTokenProfilePicture(
+            (dbUser as { profilePicture?: string }).profilePicture
+          );
         }
       }
       if (trigger === "update" && session) {
         if (session.displayName != null) token.displayName = session.displayName as string;
         if (session.profilePicture !== undefined)
-          token.profilePicture = session.profilePicture as string | null;
+          token.profilePicture = toTokenProfilePicture(session.profilePicture);
         if (token.sub) {
           const fresh = await loadUserById(token.sub);
           if (fresh) {
             token.isAdmin = !!(fresh as { isAdmin?: boolean }).isAdmin;
             token.displayName = fresh.displayName as string;
-            token.profilePicture = (fresh as { profilePicture?: string }).profilePicture ?? null;
+            token.profilePicture = toTokenProfilePicture(
+              (fresh as { profilePicture?: string }).profilePicture
+            );
           }
         }
       }
@@ -171,7 +187,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (dbUser) {
           token.isAdmin = !!(dbUser as { isAdmin?: boolean }).isAdmin;
           token.displayName = dbUser.displayName as string;
-          token.profilePicture = (dbUser as { profilePicture?: string }).profilePicture ?? null;
+          token.profilePicture = toTokenProfilePicture(
+            (dbUser as { profilePicture?: string }).profilePicture
+          );
         }
       }
       return token;
@@ -182,11 +200,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.sub!;
         (session.user as { isAdmin?: boolean }).isAdmin = !!token.isAdmin;
         session.user.name = (token.displayName as string) || session.user.name;
-        session.user.image = (token.profilePicture as string) || session.user.image;
+        const safePicture = toTokenProfilePicture(token.profilePicture);
+        session.user.image = safePicture || session.user.image;
         (session.user as { displayName?: string }).displayName =
           (token.displayName as string) || session.user.name || "";
         (session.user as { profilePicture?: string | null }).profilePicture =
-          (token.profilePicture as string | null) ?? null;
+          safePicture;
       }
       return session;
     },
