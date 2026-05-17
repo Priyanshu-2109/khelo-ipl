@@ -23,6 +23,7 @@ export async function PUT(req: Request) {
   const db = await getDb();
   const user = await db.collection("users").findOne({
     _id: new ObjectId(sessionUser.id),
+    is_deleted: { $ne: true },
   });
   if (!user?.passwordHash) {
     return NextResponse.json(

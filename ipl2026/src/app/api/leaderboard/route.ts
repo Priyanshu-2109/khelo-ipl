@@ -10,7 +10,7 @@ export async function GET() {
     const rows = await db
       .collection("users")
       .aggregate([
-        { $match: { isActive: true } },
+        { $match: { isActive: true, is_deleted: { $ne: true } } },
         {
           $lookup: {
             from: "match_rankings",

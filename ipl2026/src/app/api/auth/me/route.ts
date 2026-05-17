@@ -15,6 +15,7 @@ export async function GET() {
     user = await db.collection("users").findOne({
       _id: new ObjectId(sessionUser.id),
       isActive: true,
+      is_deleted: { $ne: true },
     });
   } catch {
     return NextResponse.json({ error: "Invalid session" }, { status: 401 });
