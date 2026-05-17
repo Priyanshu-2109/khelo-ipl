@@ -267,3 +267,25 @@ export async function submitRankings(body: {
   });
   if (!res.ok) throw new Error(await parseError(res));
 }
+
+export async function getAllUsers(): Promise<{
+  users: Array<{
+    id: string;
+    display_name: string;
+    profilePicture: string | null;
+    total_points: number;
+    is_admin: boolean;
+  }>;
+}> {
+  const res = await fetch("/api/admin/users", reqInit());
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json();
+}
+
+export async function deleteAdminUser(userId: string): Promise<void> {
+  const res = await fetch(`/api/admin/users/${userId}/delete`, {
+    method: "POST",
+    ...reqInit(),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+}

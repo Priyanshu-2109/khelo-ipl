@@ -17,8 +17,10 @@ import {
   createAdminGame,
   createScoringProfile,
   deleteAdminGame,
+  deleteAdminUser,
   deleteScoringProfile,
   getAdminGames,
+  getAllUsers,
   getGameRankings,
   getScoringProfiles,
   submitRankings,
@@ -43,13 +45,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { LottieLoader } from "../ui/lottie-loader";
 import { cn } from "@/lib/utils";
 
-type TabKey = "schedule" | "rankings" | "profiles";
+type TabKey = "schedule" | "rankings" | "profiles" | "users";
 type ModalType =
   | "addGame"
   | "addProfile"
   | "editProfile"
   | "enterPoints"
   | null;
+
+type AdminUserRow = {
+  id: string;
+  display_name: string;
+  profilePicture: string | null;
+  total_points: number;
+  is_admin: boolean;
+};
 
 const defaultDistribution: Record<string, number> = {
   "1": 35,
@@ -70,6 +80,7 @@ export function AdminPanel() {
   const [activeTab, setActiveTab] = useState<TabKey>("schedule");
   const [games, setGames] = useState<AdminGame[]>([]);
   const [profiles, setProfiles] = useState<ScoringProfile[]>([]);
+  const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedGame, setSelectedGame] = useState<AdminGame | null>(null);
@@ -86,6 +97,7 @@ export function AdminPanel() {
   const [submittingPoints, setSubmittingPoints] = useState(false);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
   const [deletingProfileId, setDeletingProfileId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const actionBtnClass =
     "transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
@@ -109,6 +121,10 @@ export function AdminPanel() {
       if (activeTab === "profiles" || activeTab === "schedule") {
         const p = await getScoringProfiles();
         setProfiles(p.profiles || []);
+      }
+      if (activeTab === "users") {
+        const u = await getAllUsers();
+        setUsers(u.users || []);
       }
     } catch (e) {
       console.error(e);
@@ -236,7 +252,7 @@ export function AdminPanel() {
     }
   };
 
-  const applyTemplate = (template: "double" | "top15" | "winner") => {
+  const applyTemplate = (template: "double" | "top15" | "top3" | "winner") => {
     let dist: Record<string, number> = {};
     if (template === "double") {
       dist = {
@@ -285,6 +301,26 @@ export function AdminPanel() {
         point_distribution: dist,
         max_ranks: 15,
       });
+    } else if (template === "top3") {
+      dist = {
+        "1": 35,
+        "2": 30,
+        "3": 25,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+      };
+      setFormData({
+        ...formData,
+        name: "Top 3 Only",
+        description: "Only top 3 players earn points",
+        point_distribution: dist,
+        max_ranks: 3,
+      });
     } else {
       dist = { "1": 100 };
       setFormData({
@@ -314,7 +350,7 @@ export function AdminPanel() {
           onValueChange={(v) => setActiveTab(v as TabKey)}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-3 rounded-xl bg-muted/40 p-1">
+          <TabsList className="grid w-full grid-cols-4 rounded-xl bg-muted/40 p-1">
             <TabsTrigger
               value="schedule"
               className={cn(
@@ -368,6 +404,24 @@ export function AdminPanel() {
                 <Trophy className="size-3.5 sm:size-4" />
               </span>
               <span>Profiles</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="users"
+              className={cn(
+                "gap-1.5 rounded-lg border border-transparent text-xs font-medium text-muted-foreground transition-all hover:text-foreground sm:text-sm",
+                activeTab === "users" &&
+                  "border-primary/30 bg-primary/10 text-foreground shadow-sm"
+              )}
+            >
+              <span
+                className={cn(
+                  "rounded-md bg-muted/70 p-1 transition-colors",
+                  activeTab === "users" && "bg-primary/20 text-primary"
+                )}
+              >
+                <Trash2 className="size-3.5 sm:size-4" />
+              </span>
+              <span>Users</span>
             </TabsTrigger>
           </TabsList>
 
@@ -620,6 +674,99 @@ export function AdminPanel() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="users" className="mt-4">
+            {loading ? (
+              <LottieLoader label="Loading users..." />
+            ) : (
+              <div className="space-y-3">
+                <p className="text-muted-foreground text-sm">
+                  Total users: <span className="font-semibold">{users.length}</span>
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {users.map((user) => (
+                    <Card
+                      key={user.id}
+                      className="min-w-0 overflow-hidden border-border/70 bg-card/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      {(() => {
+                        const displayName = user.display_name?.trim() || "User";
+                        return (
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          <div className="bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                            {user.profilePicture ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={user.profilePicture}
+                                alt={displayName}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-semibold">
+                                {displayName.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="truncate font-semibold leading-tight">
+                              {displayName}
+                            </h3>
+                            <p className="text-muted-foreground mt-1 text-sm">
+                              {user.total_points.toLocaleString()} points
+                            </p>
+                          </div>
+                        </div>
+                        {user.is_admin && (
+                          <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.65rem] font-semibold text-amber-700 dark:text-amber-400">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                        );
+                      })()}
+                      <Button
+                        variant="destructive"
+                        size="xs"
+                        className={cn(
+                          "mt-3 border border-destructive/40 bg-destructive/90 text-destructive-foreground hover:bg-destructive",
+                          destructiveActionBtnClass
+                        )}
+                        disabled={deletingUserId === user.id || user.is_admin}
+                        onClick={async () => {
+                          const displayName = user.display_name?.trim() || "User";
+                          if (!confirm(`Delete user ${displayName}? This action cannot be undone.`)) return;
+                          setDeletingUserId(user.id);
+                          try {
+                            await deleteAdminUser(user.id);
+                            await loadData();
+                          } catch (err) {
+                            alert(
+                              err instanceof Error ? err.message : "Delete failed"
+                            );
+                          } finally {
+                            setDeletingUserId(null);
+                          }
+                        }}
+                      >
+                        {deletingUserId === user.id ? (
+                          <>
+                            <Loader2 className="mr-1 size-3.5 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="mr-1 size-3.5" />
+                            Delete
+                          </>
+                        )}
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -746,6 +893,14 @@ export function AdminPanel() {
                   onClick={() => applyTemplate("double")}
                 >
                   2× points
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  onClick={() => applyTemplate("top3")}
+                >
+                  Top 3
                 </Button>
                 <Button
                   type="button"
