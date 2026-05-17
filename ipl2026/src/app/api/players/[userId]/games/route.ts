@@ -16,11 +16,10 @@ export async function GET(
     }
 
     const db = await getDb();
-    const user = await db.collection("users").findOne({ _id: oid });
-        const user = await db.collection("users").findOne({
-          _id: oid,
-          is_deleted: { $ne: true },
-        });
+    const user = await db.collection("users").findOne({
+      _id: oid,
+      is_deleted: { $ne: true },
+    });
     if (!user) {
       return NextResponse.json({ detail: "Player not found" }, { status: 404 });
     }
